@@ -127,7 +127,25 @@ class RecommendationRequestBuilderTest extends TestCase
     }
 
     /**
-     * ([interaction], [user merge], [recommendation]): (A, B -> A, A)
+     * ([interaction], [user merge], [recommendation]): (B, A -> B, B)
+     *
+     * @test
+     */
+    public function shouldPassOnCorrectSequenceOfUsersWhenMergingWithInteractionUserSameAsRecommendation(): void
+    {
+        $interactionCommand = Interaction::purchase('test-user-b', 'test-item-id');
+        $userMergeCommand = UserMerge::mergeFromSourceToTargetUser('test-user-a', 'test-user-b');
+        $recommendationsCommand = UserRecommendation::create('test-user-b', 5, 'scenario', 0.5, 3600);
+
+        $builder = new RecommendationRequestBuilder($recommendationsCommand);
+        $builder->setUserMerge($userMergeCommand);
+        $builder->setInteraction($interactionCommand);
+        $builder->build();
+        $this->assertInstanceOf(Request::class, $builder->build());
+    }
+
+    /**
+     * ([interaction], [user merge], [recommendation]): (A, B -> A, B)
      *
      * @test
      */
@@ -135,7 +153,7 @@ class RecommendationRequestBuilderTest extends TestCase
     {
         $interactionCommand = Interaction::purchase('test-user-a', 'test-item-id');
         $userMergeCommand = UserMerge::mergeFromSourceToTargetUser('test-user-b', 'test-user-a');
-        $recommendationsCommand = UserRecommendation::create('test-user-a', 5, 'scenario', 0.5, 3600);
+        $recommendationsCommand = UserRecommendation::create('test-user-b', 5, 'scenario', 0.5, 3600);
 
         $this->expectException(LogicException::class);
         $this->expectExceptionMessage(
